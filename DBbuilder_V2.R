@@ -176,17 +176,5 @@ dbRemoveTable(con, "ESTABELECIMENTOS")
 dbRemoveTable(con, "EMPRESAS")
 dbRemoveTable(con, "SIMPLES")
 
-#teste = con %>% 
-#        tbl("ESTABELECIMENTOS") %>%
-#        left_join(tbl(con, "EMPRESAS")) %>%
-#        left_join(tbl(con, "SOCIOS")) %>%
-#        left_join(tbl(con, "SIMPLES")) %>%
-#        head(10) %>% 
-#        collect()
-
-#teste = con %>% 
-#        tbl("BASE_RJ") %>%
-#        head(10) %>% 
-#        collect()
 
 dbDisconnect(con)
