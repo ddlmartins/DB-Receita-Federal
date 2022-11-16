@@ -13,12 +13,12 @@ x = read_html("https://www.gov.br/receitafederal/pt-br/assuntos/orientacao-tribu
     html_elements(xpath="//*[@id='parent-fieldname-text']/p//a") %>% 
     html_attr('href') %>% .[matches(".zip", vars = .)]
 
-map(x, ~download.file(., destfile = paste0("../Originais/2022/Outubro/", basename(.))))
+map(x, ~download.file(., destfile = paste0("./", basename(.))))
 
 #=== MONTAR A BASE ====
 
 drv <- dbDriver("SQLite") 
-con <- dbConnect(drv, "RF_RJ_10_10_2022.db") 
+con <- dbConnect(drv, "RF.db") 
 
 #=== ESTABELECIMENTOS ====
 files <-  list.files("../Originais/2022/Outubro", pattern =  "Estabelecimento", full.names = T)
@@ -56,7 +56,7 @@ map(files, function(x){
                                                                  "FAX",
                                                                  "E_MAIL",
                                                                  "SITUACAO_ESPECIAL",
-                                                                 "DATA_SITUACAO_ESPECIAL")) %>% filter(UF=="RJ"))
+                                                                 "DATA_SITUACAO_ESPECIAL")))
   } else {
     dbAppendTable(con, "ESTABELECIMENTOS", vroom(x, col_names = F, col_types = c(.default = "c")) %>% 
                    `colnames<-`(c("CNPJ_RADICAL",
@@ -88,7 +88,7 @@ map(files, function(x){
                                   "FAX",
                                   "E_MAIL",
                                   "SITUACAO_ESPECIAL",
-                                  "DATA_SITUACAO_ESPECIAL")) %>% filter(UF=="RJ"))
+                                  "DATA_SITUACAO_ESPECIAL")))
   }})
 
 #=== EMPRESAS ====
@@ -163,18 +163,6 @@ dbWriteTable(con, "SIMPLES",  map_df(files, ~vroom(., col_names = F, col_types =
                                                        "DATA_OP_MEI",
                                                        "DATA_EX_MEI"))))
 
-
-#=== JOIN ====
-
-dbWriteTable(con, "BASE_RJ",  con %>% 
-                              tbl("ESTABELECIMENTOS") %>%
-                                  left_join(tbl(con, "EMPRESAS"), by="CNPJ_RADICAL") %>%
-                                  left_join(tbl(con, "SIMPLES"), by="CNPJ_RADICAL") %>% 
-                                  collect() %>% mutate_all(~iconv(.,from = "latin1", to = "UTF-8")))
-
-dbRemoveTable(con, "ESTABELECIMENTOS")
-dbRemoveTable(con, "EMPRESAS")
-dbRemoveTable(con, "SIMPLES")
 
 
 dbDisconnect(con)
